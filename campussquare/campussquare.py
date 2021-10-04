@@ -28,7 +28,7 @@ class CampusSquare():
                         ):
         data = {
             's_no': '0',
-            '_flowExecutionKey': self.session.flow_execution_key,
+            '_flowExecutionKey': self.session.get_flow_execution_key(),
             '_eventId': 'search',
             'nendo': year,
             'jikanwariShozokuCode': '',
@@ -52,7 +52,7 @@ class CampusSquare():
                         timetable_code: int,
                         locale: str = 'ja_JP'):
         data = {
-            '_flowExecutionKey': self.session.flow_execution_key,
+            '_flowExecutionKey': self.session.get_flow_execution_key(),
             '_eventId': 'input',
             'nendo': year,
             'jikanwariShozokuCode': affiliation_code,
