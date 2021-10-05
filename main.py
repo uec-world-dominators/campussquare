@@ -29,8 +29,7 @@ print(res.url)
 campussquare = CampusSquare(
     'https://campusweb.office.uec.ac.jp/campusweb/campussquare.do',
     get_flow_execution_key(res.url),
-    shibboleth.lwp,
-    debug=True
+    shibboleth.get_cookies(),
 )
 
 campussquare.goto_syllabus_search()
