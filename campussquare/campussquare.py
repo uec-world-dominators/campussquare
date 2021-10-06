@@ -1,6 +1,5 @@
 import http.cookiejar
 from .session import CampusSquareSession
-from .util import create_form_data, debug_response
 
 
 class CampusSquare():
@@ -16,17 +15,18 @@ class CampusSquare():
                                            debug=debug)
 
     def goto_syllabus_search(self):
-        res = self.session.do({
+        return self.session.do({
             '_flowId': 'SYW0001000-flow'
         })
-        return res
 
     def search_syllabus(self,
                         year: int = '',
                         subject: str = '',
+                        day_of_week: str = '',
+                        period: str = '',
                         display_count: int = 100,
                         ):
-        data = {
+        return self.session.do({
             's_no': '0',
             '_flowExecutionKey': self.session.get_flow_execution_key(),
             '_eventId': 'search',
@@ -38,28 +38,39 @@ class CampusSquare():
             'numberingcd': '',
             'keyword': '',
             'nenji': '',
-            'yobi': '',
-            'jigen': '',
+            'yobi': day_of_week,
+            'jigen': period,
             'jitsumuKbn': '',
             '_displayCount': display_count,
-        }
-        res = self.session.do(data=data)
-        return res
+        })
 
     def syllabus_detail(self,
                         year: int,
                         affiliation_code: int,
                         timetable_code: int,
                         locale: str = 'ja_JP'):
-        data = {
+        return self.session.do({
             '_flowExecutionKey': self.session.get_flow_execution_key(),
-            '_eventId': 'input',
+            '_eventId': 'byCode',
             'nendo': year,
-            'jikanwariShozokuCode': affiliation_code,
+            'backTo': 'input',
+            'jikanwariShozokuCodeForKettei': affiliation_code,
             'jikanwaricd': timetable_code,
-            'locale': locale,
-            'secchikbncd': '',
-            'dispCount': '100',
-        }
-        res = self.session.do(data=data)
-        return res
+        })
+
+    def goto_grades(self):
+        return self.session.do({
+            '_flowId': 'SIW0001300-flow'
+        })
+
+    def grades_detail(self,
+                      year: int = '',
+                      semester: int = ''):
+        return self.session.do({
+            '_flowExecutionKey': self.session.get_flow_execution_key(),
+            '_eventId': 'display',
+            'dummy': '',
+            'spanType': '1' if year and semester else '0',
+            'nendo': year,
+            'gakkiKbnCd': semester,
+        })

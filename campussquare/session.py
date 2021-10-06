@@ -1,9 +1,12 @@
+import os
 import http.cookiejar
 import requests
 import bs4
 import re
 import threading
 import time
+import json
+from campussquare.errors import CampusSquareFlowError
 
 from campussquare.util import debug_response, get_flow_execution_key
 
@@ -14,19 +17,27 @@ class CampusSquareSession():
                  initial_flow_execution_key: str,
                  cookies: http.cookiejar.CookieJar,
                  debug: bool = False,
+                 credential_path: str = '.campussquare.json',
                  refresh_interval_sec: int = 600) -> None:
-        self.flow_execution_keys = {}
-        self.flow_execution_keys['default'] = initial_flow_execution_key
 
+        self.url = campussquare_url
+        self.credential_path = credential_path
+        self.debug = debug
+
+        # setup session
         self.session = requests.Session()
         self.session.cookies = cookies
 
-        self.url = campussquare_url
-        self.debug = debug
+        # setup flowExecutionKey
+        if initial_flow_execution_key:
+            self.__flow_execution_keys = {}
+            self._set_flow_execution_key(initial_flow_execution_key)
+        else:
+            self.__flow_execution_keys = self._load_flow_execution_key()
 
         # key refreshing
         topmenu_flow_execution_key = self._get_topmenu_flow_execution_key()
-        self.flow_execution_keys['topmenu'] = topmenu_flow_execution_key
+        self._set_flow_execution_key(topmenu_flow_execution_key, 'topmenu')
 
         def _refresh():
             while True:
@@ -34,8 +45,24 @@ class CampusSquareSession():
                 self._refresh()
         threading.Thread(target=_refresh, daemon=True).start()
 
+    def _set_flow_execution_key(self, key, namespace='default'):
+        self.__flow_execution_keys[namespace] = key or ''
+        with open(self.credential_path, 'wt', encoding='utf-8') as f:
+            json.dump(self.__flow_execution_keys, f)
+
     def get_flow_execution_key(self, namespace='default'):
-        return self.flow_execution_keys.get(namespace)
+        return self.__flow_execution_keys.get(namespace)
+
+    def _load_flow_execution_key(self):
+        if os.path.exists(self.credential_path):
+            with open(self.credential_path, 'rt', encoding='utf-8') as f:
+                obj = json.load(f)
+            flow_execution_key = obj.get('default')
+            if not flow_execution_key:
+                raise RuntimeError('default flowExecutionKey not found')
+            return flow_execution_key
+        else:
+            raise RuntimeError('credential file not found')
 
     def do(self, data={}, namespace='default'):
         res = self.session.post(self.url, data=data, headers={
@@ -43,12 +70,12 @@ class CampusSquareSession():
         })
 
         # update flowExecutionKey
-        self.flow_execution_keys[namespace] = get_flow_execution_key(res.url) or self.get_flow_execution_key(namespace)
+        self._set_flow_execution_key(get_flow_execution_key(res.url) or self.get_flow_execution_key(namespace), namespace)
 
         # error check
         doc = bs4.BeautifulSoup(res.text, 'html.parser')
         if doc.select_one('title').text == 'SYSTEM ERROR':
-            raise RuntimeError('CampusSquare Flow Error')
+            raise CampusSquareFlowError()
 
         self.debug and debug_response(res)
 
@@ -67,3 +94,7 @@ class CampusSquareSession():
         regex = re.compile('document\.TopForm\._flowExecutionKey\.value = "([^"]+)";')
         topmenu_flow_execution_key = regex.findall(res.text)[0]
         return topmenu_flow_execution_key
+
+    def logout(self):
+        data = {'_flowId': 'USW0009100-flow'}
+        raise NotImplementedError()
