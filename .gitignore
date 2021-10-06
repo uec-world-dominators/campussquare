@@ -6,5 +6,6 @@ dist/
 *.lwp
 *.tmp
 *.html
+*.json
 
 .envrc
