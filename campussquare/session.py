@@ -48,7 +48,7 @@ class CampusSquareSession():
     def _set_flow_execution_key(self, key, namespace='default'):
         self.__flow_execution_keys[namespace] = key or ''
         with open(self.credential_path, 'wt', encoding='utf-8') as f:
-            json.dump(self.__flow_execution_keys, f)
+            json.dump(self.__flow_execution_keys, f, indent=4)
 
     def get_flow_execution_key(self, namespace='default'):
         return self.__flow_execution_keys.get(namespace)
