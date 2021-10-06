@@ -30,7 +30,7 @@ setuptools.setup(
 
     url='https://github.com/uec-world-dominators/campussquare',
 
-    description='UEC Auth',
+    description='Campus Square',
     long_description=_readme(),
     long_description_content_type='text/markdown',
     keywords='',
