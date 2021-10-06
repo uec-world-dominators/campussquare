@@ -30,11 +30,8 @@ class CampusSquareSession():
         self.session.cookies = cookies
 
         # setup flowExecutionKey
-        if initial_flow_execution_key:
-            self.__flow_execution_keys = {}
-            self._set_flow_execution_key(initial_flow_execution_key)
-        else:
-            self.__flow_execution_keys = self._load_flow_execution_key()
+        self.__flow_execution_keys = {}
+        self._set_flow_execution_key(initial_flow_execution_key or self._load_flow_execution_key())
 
         # key refreshing
         topmenu_flow_execution_key = self._get_topmenu_flow_execution_key()
