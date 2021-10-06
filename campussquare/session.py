@@ -6,6 +6,7 @@ import re
 import threading
 import time
 import json
+import sys
 from campussquare.errors import CampusSquareFlowError
 
 from campussquare.util import debug_response, get_flow_execution_key
@@ -82,7 +83,7 @@ class CampusSquareSession():
         return res
 
     def _refresh(self):
-        print('refreshing key...')
+        print('refreshing key...', file=sys.stderr)
         res = self.do({
             '_eventId': 'extendSession',
             '_flowExecutionKey': self.get_flow_execution_key('topmenu'),
