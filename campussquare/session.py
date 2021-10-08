@@ -18,11 +18,11 @@ class CampusSquareSession():
                  initial_flow_execution_key: str,
                  cookies: http.cookiejar.CookieJar,
                  debug: bool = False,
-                 credential_path: str = '.campussquare.json',
+                 credential_path: str = None,
                  refresh_interval_sec: int = 600) -> None:
 
         self.url = campussquare_url
-        self.credential_path = credential_path
+        self.credential_path = credential_path or '.campussquare.json'
         self.debug = debug
 
         # setup session

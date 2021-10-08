@@ -7,11 +7,13 @@ class CampusSquare():
                  campussquare_url: str,
                  initial_flow_execution_key: str,
                  cookies: http.cookiejar.CookieJar,
+                 credential_path: str = None,
                  debug: bool = False
                  ) -> None:
         self.session = CampusSquareSession(campussquare_url,
                                            initial_flow_execution_key,
                                            cookies,
+                                           credential_path=credential_path,
                                            debug=debug)
 
     def goto_syllabus_search(self):
