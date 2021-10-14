@@ -9,11 +9,15 @@ class Test(unittest.TestCase):
         self.assertEqual(hashlib.sha256(output).hexdigest(), '796cced98290616484dc08ce7d187e17d1b0fbb4c98ed83c220158e895abf724')
 
     def test_syllabus_detail(self):
-        output = subprocess.check_output("python3 main.py syllabus get --year 2021 -t 31 -c 21124235", shell=True)
+        output = subprocess.check_output("python3 main.py syllabus get 2021:31:21124235", shell=True)
         self.assertEqual(hashlib.sha256(output).hexdigest(), '7f492093d01f9d6de4f984f72ea359799fb30b80866f4dcd37a00075a64d74fe')
 
+    def test_syllabus_detail_multiple(self):
+        output = subprocess.check_output("python3 main.py syllabus get 2021:31:21124235 2021:31:21124208 --interval 1", shell=True)
+        self.assertEqual(hashlib.sha256(output).hexdigest(), 'ccaf6ade7a4177e257e434ae7713d147ad9000b9159fe0810501cc314185b8c3')
+
     def test_syllabus_detail_markdown(self):
-        output = subprocess.check_output("python3 main.py --markdown syllabus get --year 2021 -t 31 -c 21124229", shell=True)
+        output = subprocess.check_output("python3 main.py --markdown syllabus get 2021:31:21124229", shell=True)
         self.assertEqual(hashlib.sha256(output).hexdigest(), 'a021711c18b1902ef2a96f0e300c3e37864805398e7c4807e07f51cdae311319')
 
 
