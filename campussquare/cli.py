@@ -1,7 +1,10 @@
+import time
 import sys
 import datetime
 import argparse
 import json
+
+from campussquare.util import split_packed_code
 from .errors import CampusSquareFlowError
 from .campussquare import CampusSquare
 from . import parser
@@ -45,30 +48,33 @@ def _default_handler(args, next_handler, *, authenticator: Authenticator):
             campussquare = authenticator.refresh()
 
 
-def _syllabus_handler(args, campussquare: CampusSquare):
+def _syllabus_search_handler(args, campussquare: CampusSquare):
     campussquare.goto_syllabus_search()
 
-    if args.command == 'search':
-        res = campussquare.search_syllabus(
-            year=args.year,
-            subject=args.subject,
-            day_of_week=args.dayofweek,
-            period=args.period)
-        if args.html:
-            output(args.output, res.text)
-        elif args.json:
-            results = parser.parse_syllabus_search_result(res.text)
-            output(args.output, json.dumps(
-                results, ensure_ascii=False, indent=4))
-        else:
-            results = parser.parse_syllabus_search_result(res.text)
-            table = parser.format_syllabus_search_result(results)
-            output(args.output, table)
+    res = campussquare.search_syllabus(
+        year=args.year,
+        subject=args.subject,
+        day_of_week=args.dayofweek,
+        period=args.period)
+    if args.html:
+        output(args.output, res.text)
+    elif args.json:
+        results = parser.parse_syllabus_search_result(res.text)
+        output(args.output, json.dumps(
+            results, ensure_ascii=False, indent=4))
+    else:
+        results = parser.parse_syllabus_search_result(res.text)
+        table = parser.format_syllabus_search_result(results)
+        output(args.output, table)
 
-    elif args.command == 'get':
-        assert args.code and args.affiliation
-        res = campussquare.syllabus_detail(
-            args.year, args.affiliation, args.code)
+
+def _syllabus_get_handler(args, campussquare: CampusSquare):
+    codes_count = len(args.codes)
+    for i, code in enumerate(args.codes):
+        triple = split_packed_code(code)
+
+        campussquare.goto_syllabus_search()
+        res = campussquare.syllabus_detail(*triple)
         if args.html:
             output(args.output, res.text)
         elif args.markdown:
@@ -79,6 +85,11 @@ def _syllabus_handler(args, campussquare: CampusSquare):
             results = parser.parse_syllabus_detail(res.text)
             output(args.output, json.dumps(
                 results, ensure_ascii=False, indent=4))
+
+        if i + 1 < codes_count:
+            # if not last
+            time.sleep(args.interval)
+            print(args.delimiter, end='')
 
 
 def _grades_handler(args, campussquare: CampusSquare):
@@ -128,18 +139,31 @@ def get_parser(*, authenticator: Authenticator):
     subparser = parser.add_subparsers()
 
     syllabus = subparser.add_parser('syllabus')
-    syllabus.add_argument('command', choices=['search', 'get'])
-    syllabus.add_argument('--year', type=int,
-                          default=datetime.datetime.today().year)
-    syllabus.add_argument('--subject', '-s')
-    syllabus.add_argument('--code', '-c')
-    syllabus.add_argument('--affiliation', '-t', type=int)
-    syllabus.add_argument('--semester', type=int, choices=[1, 2])
-    syllabus.add_argument('--dayofweek', type=int)
-    syllabus.add_argument('--period', type=int)
-    syllabus.set_defaults(handler=lambda args: _default_handler(
+    syllabus_subparsers = syllabus.add_subparsers()
+
+    syllabus_search = syllabus_subparsers.add_parser('search')
+    syllabus_search.add_argument('--year', type=int,
+                                 default=datetime.datetime.today().year)
+    syllabus_search.add_argument('--subject', '-s')
+    syllabus_search.add_argument('--semester', type=int, choices=[1, 2])
+    syllabus_search.add_argument('--dayofweek', type=int)
+    syllabus_search.add_argument('--period', type=int)
+    syllabus_search.set_defaults(handler=lambda args: _default_handler(
         args,
-        _syllabus_handler,
+        _syllabus_search_handler,
+        authenticator=authenticator
+    ))
+
+    syllabus_get = syllabus_subparsers.add_parser('get')
+    syllabus_get.add_argument('--delimiter', '-d', default='\x00')
+    syllabus_get.add_argument(
+        '--interval', '-i', type=int, default=3, help='取得間隔。秒')
+    syllabus_get.add_argument(
+        'codes', nargs='+', help='「年度:所属コード:時間割コード」のフォーマット。複数指定可')
+
+    syllabus_get.set_defaults(handler=lambda args: _default_handler(
+        args,
+        _syllabus_get_handler,
         authenticator=authenticator
     ))
 
