@@ -76,3 +76,15 @@ class CampusSquare():
             'nendo': year,
             'gakkiKbnCd': semester,
         })
+
+    def goto_courses(self):
+        return self.session.do({
+            '_flowId': 'RSW0001000-flow'
+        })
+
+    def courses_semester(self, semester: int):
+        return self.session.do({
+            '_flowExecutionKey': self.session.get_flow_execution_key(),
+            '_eventId': 'search',
+            'gakkiKbnCode': semester,
+        })
