@@ -127,7 +127,7 @@ def _courses_handler(args, campussquare: CampusSquare):
         for course in courses:
             result.append(
                 f"{course['year']}:{course['affiliation']}:{course['code']}")
-        output(args.output, result)
+        output(args.output, '\n'.join(result))
 
 
 def get_parser(*, authenticator: Authenticator):
