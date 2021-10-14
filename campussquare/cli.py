@@ -58,7 +58,8 @@ def _syllabus_handler(args, campussquare: CampusSquare):
             output(args.output, res.text)
         elif args.json:
             results = parser.parse_syllabus_search_result(res.text)
-            output(args.output, json.dumps(results, ensure_ascii=False, indent=4))
+            output(args.output, json.dumps(
+                results, ensure_ascii=False, indent=4))
         else:
             results = parser.parse_syllabus_search_result(res.text)
             table = parser.format_syllabus_search_result(results)
@@ -66,7 +67,8 @@ def _syllabus_handler(args, campussquare: CampusSquare):
 
     elif args.command == 'get':
         assert args.code and args.affiliation
-        res = campussquare.syllabus_detail(args.year, args.affiliation, args.code)
+        res = campussquare.syllabus_detail(
+            args.year, args.affiliation, args.code)
         if args.html:
             output(args.output, res.text)
         elif args.markdown:
@@ -75,7 +77,8 @@ def _syllabus_handler(args, campussquare: CampusSquare):
             output(args.output, md)
         else:
             results = parser.parse_syllabus_detail(res.text)
-            output(args.output, json.dumps(results, ensure_ascii=False, indent=4))
+            output(args.output, json.dumps(
+                results, ensure_ascii=False, indent=4))
 
 
 def _grades_handler(args, campussquare: CampusSquare):
@@ -86,13 +89,34 @@ def _grades_handler(args, campussquare: CampusSquare):
             output(args.output, res.text)
         elif args.json:
             results = parser.parse_grades_detail(res.text)
-            output(args.output, json.dumps(results, ensure_ascii=False, indent=4))
+            output(args.output, json.dumps(
+                results, ensure_ascii=False, indent=4))
         elif args.markdown:
             raise RuntimeError('cannot format to markdown')
         else:
             results = parser.parse_grades_detail(res.text)
             table = parser.format_grades_detail(results)
             output(args.output, table)
+
+
+def _courses_handler(args, campussquare: CampusSquare):
+    res = campussquare.goto_courses()
+
+    if args.semester is not None:
+        res = campussquare.courses_semester(args.semester)
+
+    if args.html:
+        output(args.output, res.text)
+    elif args.json:
+        courses = parser.parse_courses(res.text)
+        output(args.output, json.dumps(courses, ensure_ascii=False, indent=4))
+    else:
+        courses = parser.parse_courses(res.text)
+        result = []
+        for course in courses:
+            result.append(
+                f"{course['year']}:{course['affiliation']}:{course['code']}")
+        output(args.output, result)
 
 
 def get_parser(*, authenticator: Authenticator):
@@ -105,7 +129,8 @@ def get_parser(*, authenticator: Authenticator):
 
     syllabus = subparser.add_parser('syllabus')
     syllabus.add_argument('command', choices=['search', 'get'])
-    syllabus.add_argument('--year', type=int, default=datetime.datetime.today().year)
+    syllabus.add_argument('--year', type=int,
+                          default=datetime.datetime.today().year)
     syllabus.add_argument('--subject', '-s')
     syllabus.add_argument('--code', '-c')
     syllabus.add_argument('--affiliation', '-t', type=int)
@@ -128,6 +153,13 @@ def get_parser(*, authenticator: Authenticator):
         authenticator=authenticator
     ))
 
+    courses = subparser.add_parser('courses')
+    courses.add_argument('--semester', type=int, choices=[1, 2])
+    courses.set_defaults(handler=lambda args: _default_handler(
+        args,
+        _courses_handler,
+        authenticator=authenticator
+    ))
     return parser
 
 

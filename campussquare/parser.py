@@ -33,7 +33,8 @@ def parse_syllabus_search_result(html: str):
         try:
             tds = tr.select('td')
             _src = tds[7].select_one('input[type=button]').get('onclick')
-            _regex = re.compile(r"refer\('(?P<year>\d+)','(?P<affiliation_code>\d+)','(?P<timetable_code>\d+)','(?P<locale>\w+)',\d+\);")
+            _regex = re.compile(
+                r"refer\('(?P<year>\d+)','(?P<affiliation_code>\d+)','(?P<timetable_code>\d+)','(?P<locale>\w+)',\d+\);")
             _match = _regex.match(_src)
             # semester = normarize(tds[1].text)
             result.append({
@@ -120,6 +121,28 @@ def format_grades_detail(results: List[Dict],
     table.add_rows(rows)
     table.align = 'l'
     return table
+
+
+def parse_courses(html: str):
+    courses = []
+    doc = bs4.BeautifulSoup(html, 'html.parser')
+    tds = doc.select('table.rishu-koma table.rishu-koma-inner td')
+    for td in tds:
+        if a := td.select_one('a[onclick^="return Delete"]'):
+            match = re.match(
+                r"return DeleteCallA\('(?P<year>\d+)','(?P<affiliation>\d+)','(?P<code>\d+)','(?P<dayofweek>\d+)','(?P<period>\d+)'\)", a.get('onclick'))
+
+            subject = td.select_one('a[onclick^="syllabusRefer"]').text.strip()
+
+            courses.append({
+                'subject': subject,
+                'year': match.group('year'),
+                'affiliation': match.group('affiliation'),
+                'code': match.group('code'),
+                'dayofweek': int(match.group('dayofweek')),
+                'period': int(match.group('period')),
+            })
+    return courses
 
 
 if __name__ == '__main__':
