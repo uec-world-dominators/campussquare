@@ -4,7 +4,7 @@ import datetime
 import argparse
 import json
 
-from campussquare.util import split_packed_code
+from campussquare.util import split_packed_code, get_school_year
 from .errors import CampusSquareFlowError
 from .campussquare import CampusSquare
 from . import parser
@@ -143,7 +143,7 @@ def get_parser(*, authenticator: Authenticator):
 
     syllabus_search = syllabus_subparsers.add_parser('search')
     syllabus_search.add_argument('--year', type=int,
-                                 default=datetime.datetime.today().year)
+                                 default=get_school_year())
     syllabus_search.add_argument('--subject', '-s')
     syllabus_search.add_argument('--semester', type=int, choices=[1, 2])
     syllabus_search.add_argument('--dayofweek', type=int)
