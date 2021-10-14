@@ -42,7 +42,7 @@ def get_flow_execution_key(url: str) -> str:
 def split_packed_code(packed: str) -> Tuple[str, str, str]:
     unpacked = packed.split(':')
     if len(unpacked) == 2:
-        year = datetime.datetime.today().year
+        year = get_school_year()
         affiliation, code = unpacked
     elif len(unpacked) == 3:
         year, affiliation, code = unpacked
@@ -50,3 +50,12 @@ def split_packed_code(packed: str) -> Tuple[str, str, str]:
         raise RuntimeError(f'`{packed}`のパースに失敗しました')
 
     return year, affiliation, code
+
+
+def get_school_year(today: datetime.datetime = None) -> int:
+    today = today or datetime.datetime.today()
+
+    if today.month < 4:
+        return today.year - 1
+    else:
+        return today.year
