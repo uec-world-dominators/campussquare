@@ -28,7 +28,7 @@ def parse_syllabus_detail(html: str):
 def parse_syllabus_search_result(html: str):
     result = []
     doc = bs4.BeautifulSoup(html, 'html.parser')
-    trs = doc.select('#jikanwariInputForm ~ table tbody tr')
+    trs = doc.select('table.normal tbody tr')
     for tr in trs:
         try:
             tds = tr.select('td')
