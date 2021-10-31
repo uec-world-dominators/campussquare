@@ -10,11 +10,16 @@ class CampusSquare():
                  credential_path: str = None,
                  debug: bool = False
                  ) -> None:
+        self.campussquare_url = campussquare_url
         self.session = CampusSquareSession(campussquare_url,
                                            initial_flow_execution_key,
                                            cookies,
                                            credential_path=credential_path,
                                            debug=debug)
+
+    def goto_toppage(self):
+        url = f'{self.campussquare_url}?_flowId=USW0009500-flow'
+        return self.session.do_get(url, namespace='toppage')
 
     def goto_syllabus_search(self):
         return self.session.do({

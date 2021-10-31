@@ -13,4 +13,7 @@ python3 main.py courses
 
 # 時間割コードから内部シラバスをMarkdownで表示
 python3 main.py --markdown syllabus get 2021:31:21124229
+
+# トップページ
+python3 main.py top
 ```

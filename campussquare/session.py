@@ -62,7 +62,20 @@ class CampusSquareSession():
         else:
             raise RuntimeError('credential file not found')
 
-    def do(self, data={}, namespace='default'):
+    def do_get(self, url: str, namespace='default'):
+        res = self.session.get(url, headers={
+            'Referer': f'{self.url}?_flowExecutionKey={self.get_flow_execution_key(namespace)}'
+        })
+
+        # update flowExecutionKey
+        self._set_flow_execution_key(get_flow_execution_key(
+            res.url) or self.get_flow_execution_key(namespace), namespace)
+
+        self.debug and debug_response(res)
+
+        return res
+
+    def do(self, data={}, namespace='default', method: str = 'post'):
         res = self.session.post(self.url, data=data, headers={
             'Referer': f'{self.url}?_flowExecutionKey={self.get_flow_execution_key(namespace)}'
         })

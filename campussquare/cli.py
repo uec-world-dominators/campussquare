@@ -1,3 +1,4 @@
+import bs4
 import time
 import sys
 import datetime
@@ -130,6 +131,16 @@ def _courses_handler(args, campussquare: CampusSquare):
         output(args.output, '\n'.join(result))
 
 
+def _toppage_handler(args, campussquare: CampusSquare):
+    res = campussquare.goto_toppage()
+    res.encoding = 'shift_jis'
+    if args.html:
+        output(args.output, res.text)
+    else:
+        doc = bs4.BeautifulSoup(res.text, 'html.parser')
+        output(args.output, doc.text)
+
+
 def get_parser(*, authenticator: Authenticator):
     parser = argparse.ArgumentParser('campussquare')
     parser.add_argument('--json', action='store_true')
@@ -183,6 +194,13 @@ def get_parser(*, authenticator: Authenticator):
         args,
         _courses_handler,
         authenticator=authenticator
+    ))
+
+    toppage = subparser.add_parser('top')
+    toppage.set_defaults(handler=lambda args: _default_handler(
+        args,
+        _toppage_handler,
+        authenticator=authenticator,
     ))
     return parser
 
