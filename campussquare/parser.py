@@ -32,24 +32,22 @@ def parse_syllabus_search_result(html: str):
     for tr in trs:
         try:
             tds = tr.select('td')
-            _src = tds[7].select_one('input[type=button]').get('onclick')
+            _src = tds[8].select_one('input[type=button]').get('onclick')
             _regex = re.compile(
                 r"refer\('(?P<year>\d+)','(?P<affiliation_code>\d+)','(?P<timetable_code>\d+)','(?P<locale>\w+)',\d+\);")
             _match = _regex.match(_src)
-            # semester = normarize(tds[1].text)
             result.append({
-                'semester': normarize(tds[2].text),
-                'periods': normarize(tds[3].text),
-                'timetable_code': normarize(tds[4].text),
-                'subject': normarize(tds[5].text),
-                'teachers': normarize(tds[6].text, allow_space=True),
+                'semester': normarize(tds[3].text),
+                'periods': normarize(tds[4].text),
+                'timetable_code': normarize(tds[5].text),
+                'subject': normarize(tds[6].text),
+                'teachers': normarize(tds[7].text, allow_space=True),
                 'year': normarize(_match.group('year')),
                 'affiliation_code': normarize(_match.group('affiliation_code')),
-                # 'timetable_code': normarize(_match.group('timetable_code')),
                 'locale': normarize(_match.group('locale')),
             })
-        except:
-            print('Failed to parse row', file=sys.stderr)
+        except Exception as e:
+            print('Failed to parse row', e.with_traceback(), file=sys.stderr)
     return result
 
 
